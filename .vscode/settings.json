@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "vga.h": "c",
+        "util.h": "c",
+        "stdint.h": "c",
+        "multiboot.h": "c",
+        "keyboard.h": "c",
+        "kmalloc.h": "c"
+    }
+}
