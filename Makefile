@@ -1,6 +1,6 @@
 gcc=i386-elf-gcc
 ld=i386-elf-ld
-CFLAGS = -ffreestanding -g
+CFLAGS = -ffreestanding -g -nostdlib
 
 all: clean kernel boot image
 
@@ -19,16 +19,17 @@ kernel:
 	$(gcc) $(CFLAGS) -c src/keyboard.c -o keyboard.o
 	$(gcc) $(CFLAGS) -c src/memory.c -o memory.o
 	$(gcc) $(CFLAGS) -c src/kmalloc.c -o kmalloc.o
-	$(gcc) $(CFLAGS) -c src/fs/fs.c -o fs.o
+	$(gcc) $(CFLAGS) -c src/disk/fs/fs.c -o fs.o
 	$(gcc) $(CFLAGS) -c src/string.c -o string.o
+	$(gcc) $(CFLAGS) -c src/disk/disk.c -o disk.o
 
 boot:
 	nasm -f elf32 src/boot.s -o boot.o
 	nasm -f elf32 src/gdt/gdt.s -o gdts.o
 	nasm -f elf32 src/interrupts/idt.s -o idts.o
 image:
-	$(ld) -T linker.ld -o kernel boot.o kernel.o vga.o gdt.o gdts.o util.o idt.o idts.o \
-		timer.o stdio.o keyboard.o memory.o kmalloc.o fs.o string.o
+	$(ld) -T src/linker.ld -o kernel boot.o kernel.o vga.o gdt.o gdts.o util.o idt.o idts.o \
+		timer.o stdio.o keyboard.o memory.o kmalloc.o fs.o string.o disk.o
 	mv kernel Doors/boot/kernel
 	grub-mkrescue -o doors-11-i386-elf.iso Doors/
 	rm *.o

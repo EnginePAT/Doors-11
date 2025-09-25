@@ -2,8 +2,11 @@
 #include "stdio.h"
 #include "../vga.h"
 
-void putc(char c){
-    print(&c);
+void putc(char c) {
+    char buf[2];
+    buf[0] = c;
+    buf[1] = '\0';
+    print(buf);
 }
 
 void puts(const char* s){

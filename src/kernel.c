@@ -9,8 +9,9 @@
 #include "multiboot.h"
 #include "memory.h"
 #include "util.h"
-#include "fs/fs.h"
+#include "disk/fs/fs.h"
 #include "string.h"
+#include "disk/disk.h"
 
 
 void kernel_main(uint32_t magic, struct multiboot_info *bootInfo) {
@@ -46,21 +47,11 @@ void kernel_main(uint32_t magic, struct multiboot_info *bootInfo) {
     //     print("kmalloc could not be initialized.\n");
     // }
 
-    if (bootInfo->mods_count > 0) {
-        multiboot_module_t* mods = (multiboot_module_t*) bootInfo->mods_addr;
-        uint32_t mod_start = mods[0].mod_start;
-        uint32_t mod_end   = mods[0].mod_end;
-        uint32_t mod_size  = mod_end - mod_start;
-
-        // Treat it as a pointer
-        uint8_t* initrd = (uint8_t*) mod_start;
-
-        // Example: dump first 16 bytes
-        for (int i = 0; i < 16; i++) {
-            printf("%x ", initrd[i]);
-        }
-        print("\n");
-        fs_init((uint8_t*) mod_start);
+    uint8_t buffer[512];
+    disk_init();
+    disk_read_sector(0, buffer); // read MBR
+    for(int i=0; i<16; i++) {
+        print_hex8(buffer[i]);
     }
 
     // --- Keyboard ---

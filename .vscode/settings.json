@@ -5,6 +5,7 @@
         "stdint.h": "c",
         "multiboot.h": "c",
         "keyboard.h": "c",
-        "kmalloc.h": "c"
+        "kmalloc.h": "c",
+        "fs.h": "c"
     }
 }
