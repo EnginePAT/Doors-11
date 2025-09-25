@@ -6,5 +6,7 @@
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, unsigned int n);
 int strtol(const char* str, char** endptr, int base);
+char toupper(char c);
+char* strchr(const char* s, char c);
 
 #endif      // STRING_H

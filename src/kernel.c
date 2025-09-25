@@ -48,36 +48,47 @@ void kernel_main(uint32_t magic, struct multiboot_info *bootInfo) {
     // }
 
     // Check if GRUB provided modules
-    if (bootInfo->mods_count > 0) {
-        multiboot_module_t* module = (multiboot_module_t*)bootInfo->mods_addr;
-        disk_init(module);
+    // Make sure multiboot.h is correct (no extra fields in multiboot_info)
 
-        print("Module start: ");
-        print_hex32(module->mod_start);
-        print("\nModule end: ");
-        print_hex32(module->mod_end);
-        print("\nModule size: ");
-        print_hex32(module->mod_end - module->mod_start);
-        print("\n");
+    if (bootInfo->flags & MULTIBOOT_FLAG_MODS) {  // check if modules exist
+        if (bootInfo->mods_count > 0) {
+            multiboot_module_t* module = (multiboot_module_t*)bootInfo->mods_addr;
 
-        print("Dumping first 512 bytes of the disk image:\n");
+            // Validate module addresses
+            if (module->mod_start >= module->mod_end) {
+                print("Invalid module addresses!\n");
+            } else {
+                // Initialize disk from module
+                disk_init(module);
 
-        uint8_t buffer[512];
-        disk_read_bytes(0, buffer, 512);
+                print("Module start: ");
+                print_hex32(module->mod_start);
+                print("\nModule end: ");
+                print_hex32(module->mod_end);
+                print("\nModule size: ");
+                print_hex32(module->mod_end - module->mod_start);
+                print("\n");
 
-        for (int i = 0; i < 16; i++) {
-            print_hex8(buffer[i]);
-            print(" ");
-            if ((i + 1) % 16 == 0) print("\n");
+                // Dump first 512 bytes
+                uint8_t buffer[512];
+                disk_read_bytes(0, buffer, 512);
+
+                print("Dumping first 512 bytes of the module:\n");
+                for (int i = 0; i < 16; i++) {
+                    print_hex8(buffer[i]);
+                    print(" ");
+                    if ((i + 1) % 16 == 0) print("\n");
+                }
+
+                disk.data = (uint8_t*)(uintptr_t)module->mod_start;
+
+                // Initialize filesystem using the disk module
+                fs_init(disk.data);  // <- use the pointer from your disk driver
+            }
         }
+    } else {
+        print("No GRUB modules loaded.\n");
     }
-
-    // uint8_t buffer[512];
-    // disk_init();
-    // disk_read_sector(0, buffer); // read MBR
-    // for(int i=0; i<16; i++) {
-    //     print_hex8(buffer[i]);
-    // }
 
     // --- Keyboard ---
     if (!initKeyboard()) {
@@ -88,7 +99,7 @@ void kernel_main(uint32_t magic, struct multiboot_info *bootInfo) {
 
     print("-----------------------\n\n");
     print("Doors OS Shell\n");
-    print(">");
+    print("C:\\Users\\doors>");
 
     for(;;); // infinite loop
 }

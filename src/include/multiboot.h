@@ -23,8 +23,6 @@ struct multiboot_info{
     uint32_t mem_upper;
     uint32_t boot_device;
 
-    int test;
-
     uint32_t cmdline;
     uint32_t mods_count;
     uint32_t mods_addr;

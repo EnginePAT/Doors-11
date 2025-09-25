@@ -2,13 +2,15 @@ gcc=i386-elf-gcc
 ld=i386-elf-ld
 CFLAGS = -m32 -ffreestanding -g -nostdlib -I src/include
 
-all: clean kernel boot image
+all: clean loc kernel boot image
 
 clean:
 	rm -rf *.o
 
-kernel:
+loc:
 	find src -name "*.c" -o -name "*.h" -o -name "*.s" | xargs wc -l
+
+kernel:
 	$(gcc) $(CFLAGS) -c src/kernel.c -o kernel.o
 	$(gcc) $(CFLAGS) -c src/vga.c -o vga.o
 	$(gcc) $(CFLAGS) -c src/memory/gdt/gdt.c -o gdt.o

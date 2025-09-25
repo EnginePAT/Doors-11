@@ -213,3 +213,23 @@ void print_hex32(uint32_t val) {
     }
     putc(' ');
 }
+
+void print_dec(uint32_t num) {
+    char buf[11]; // enough for 32-bit max value "4294967295"
+    int i = 0;
+
+    if (num == 0) {
+        print("0");
+        return;
+    }
+
+    while (num > 0) {
+        buf[i++] = '0' + (num % 10);
+        num /= 10;
+    }
+
+    // digits are reversed in buf, print them backwards
+    while (i > 0) {
+        putc(buf[--i]);
+    }
+}

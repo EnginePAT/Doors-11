@@ -5,11 +5,14 @@
 #include "keyboard.h"
 #include "vga.h"
 #include "string.h"
+#include "disk/fs/fs.h"
 
 #define INPUT_BUFFER_SIZE 128
 
 bool capsOn;
 bool capsLock;
+
+const char* CMD_prompt = "C:\\Users\\Doors>";
 
 const uint32_t UNKNOWN = 0xFFFFFFFF;
 const uint32_t ESC = 0xFFFFFFFF - 1;
@@ -106,7 +109,7 @@ void reboot() {
 // --- Simple command runner ---
 void runCommand(const char* cmd) {
     if (strcmp(cmd, "help") == 0) {
-        print("Commands: help, clear, echo\n");
+        print("Commands: help, clear, echo, ls\n");
     } else if (strcmp(cmd, "clear") == 0) {
         Reset(); // VGA clear
     } else if (strncmp(cmd, "echo ", 5) == 0) {
@@ -116,8 +119,27 @@ void runCommand(const char* cmd) {
         // do nothing
     } else if(strcmp(cmd, "reboot") == 0) {
         reboot();
+    } else if (strncmp(cmd, "mkf ", 4) == 0) {
+        char *filename = cmd + 4;
+        fs_create_file(filename);
     } else if(strcmp(cmd, "shutdown") == 0) {
         shutdown();
+    } else if (strncmp(cmd, "cat ", 4) == 0) {
+        char* filename = cmd + 4;
+        fs_cat_file(filename);
+    } else if(strcmp(cmd, "ls") == 0) {
+        fs_list_root();
+    } else if(strncmp(cmd, "fs ", 3) == 0) {
+        char* flag = cmd + 3;
+        if (strcmp(flag, "-type") == 0) {
+            fs_print_info();
+        } else if (strcmp(flag, "-h") == 0 || strcmp(flag, "--help") == 0) {
+            print("=== FileSystem Commands ===\n\n");
+            print("'-type' - This prints the current loaded filesystem type.\n");
+            print("'-h' or '--help' - This prints the help menu\n");
+            print("'-load' - This loads a new module. (Currently inactive. Requires implementation.)\n");
+            print("=== End ===\n");
+        }
     } else {
         print("Unknown command: ");
         print(cmd);
@@ -132,7 +154,7 @@ void handleKey(char c) {
         print("\n");                // newline
         runCommand(inputBuffer);    // execute
         inputPos = 0;               // reset
-        print(">");                // prompt
+        print(CMD_prompt);                // prompt
     } else if (c == '\b') {
         if (inputPos > 0) {
             inputPos--;

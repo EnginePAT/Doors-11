@@ -50,3 +50,18 @@ int strtol(const char* str, char** endptr, int base) {
     if (endptr) *endptr = (char*)str;
     return result * sign;
 }
+
+char toupper(char c) {
+    if (c >= 'a' && c <= 'z') return c - ('a' - 'A');
+    return c;
+}
+
+// Find the first occurrence of 'c' in the string 's'
+// Returns pointer to the character or NULL if not found
+char* strchr(const char* s, char c) {
+    while (*s) {
+        if (*s == c) return (char*)s;
+        s++;
+    }
+    return NULL;
+}

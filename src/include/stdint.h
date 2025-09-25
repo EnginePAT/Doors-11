@@ -19,3 +19,6 @@ typedef uint8_t bool;
 
 // NULL definition
 #define NULL ((void*)0)
+
+// String definition
+#define STRING const char*

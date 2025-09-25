@@ -11,6 +11,7 @@
         "gdt.h": "c",
         "memory.h": "c",
         "idt.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "string.h": "c"
     }
 }
