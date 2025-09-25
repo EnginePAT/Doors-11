@@ -1,20 +1,23 @@
 #ifndef DISK_H
 #define DISK_H
 
-#include "stdint.h"
+#include <stdint.h>
+#include <multiboot.h>
 
-// Maximum sector size
-#define SECTOR_SIZE 512
+typedef struct {
+    uint8_t* data;
+    uint32_t size;
+} Disk;
 
-// Initialize the primary ATA channel
-void disk_init(void);
+static Disk disk;
 
-// Read a single 512-byte sector from primary master
-// lba: logical block address
-// buffer: pointer to memory (at least 512 bytes)
-void disk_read_sector(uint32_t lba, uint8_t* buffer);
+// Initialize the disk with a GRUB module
+void disk_init(multiboot_module_t* module);
 
-// Optional: read multiple sectors (count <= 255)
-void disk_read_sectors(uint32_t lba, uint8_t* buffer, uint8_t count);
+// Read a single byte
+uint8_t disk_read_byte(uint32_t offset);
 
-#endif // DISK_H
+// Read multiple bytes into a buffer
+void disk_read_bytes(uint32_t offset, uint8_t* buffer, uint32_t length);
+
+#endif

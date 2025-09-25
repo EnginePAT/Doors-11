@@ -1,6 +1,6 @@
 #include "stdint.h"
 #include "util.h"
-#include "interrupts/idt.h"
+#include "memory/interrupts/idt.h"
 #include "stdlib/stdio.h"
 #include "keyboard.h"
 #include "vga.h"
@@ -192,4 +192,6 @@ bool initKeyboard() {
     capsOn = false;
     capsLock = false;
     irq_install_handler(1, &keyboardHandler);
+
+    return true;
 }

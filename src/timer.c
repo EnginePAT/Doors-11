@@ -1,5 +1,5 @@
 #include "util.h"
-#include "interrupts/idt.h"
+#include "memory/interrupts/idt.h"
 #include "vga.h"
 #include "timer.h"
 

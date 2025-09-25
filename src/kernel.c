@@ -1,13 +1,13 @@
 #include "vga.h"
 #include "stdint.h"
-#include "gdt/gdt.h"
-#include "interrupts/idt.h"
+#include "memory/gdt/gdt.h"
+#include "memory/interrupts/idt.h"
 #include "timer.h"
-#include "kmalloc.h"
+#include "memory/kmalloc.h"
 #include "stdlib/stdio.h"
 #include "keyboard.h"
 #include "multiboot.h"
-#include "memory.h"
+#include "memory/memory.h"
 #include "util.h"
 #include "disk/fs/fs.h"
 #include "string.h"
@@ -42,20 +42,49 @@ void kernel_main(uint32_t magic, struct multiboot_info *bootInfo) {
     // } else {
     //     print("[ STATUS OK ] Memory Successfully Initialized\n");
     // }
-    
+    //
     // if (!kmallocInit(0x1000)) {
     //     print("kmalloc could not be initialized.\n");
     // }
 
-    uint8_t buffer[512];
-    disk_init();
-    disk_read_sector(0, buffer); // read MBR
-    for(int i=0; i<16; i++) {
-        print_hex8(buffer[i]);
+    // Check if GRUB provided modules
+    if (bootInfo->mods_count > 0) {
+        multiboot_module_t* module = (multiboot_module_t*)bootInfo->mods_addr;
+        disk_init(module);
+
+        print("Module start: ");
+        print_hex32(module->mod_start);
+        print("\nModule end: ");
+        print_hex32(module->mod_end);
+        print("\nModule size: ");
+        print_hex32(module->mod_end - module->mod_start);
+        print("\n");
+
+        print("Dumping first 512 bytes of the disk image:\n");
+
+        uint8_t buffer[512];
+        disk_read_bytes(0, buffer, 512);
+
+        for (int i = 0; i < 16; i++) {
+            print_hex8(buffer[i]);
+            print(" ");
+            if ((i + 1) % 16 == 0) print("\n");
+        }
     }
 
+    // uint8_t buffer[512];
+    // disk_init();
+    // disk_read_sector(0, buffer); // read MBR
+    // for(int i=0; i<16; i++) {
+    //     print_hex8(buffer[i]);
+    // }
+
     // --- Keyboard ---
-    initKeyboard();
+    if (!initKeyboard()) {
+        print("[ STATUS ERR ] Could not initialize keyboard!\n");
+    } else {
+        print("[ STATUS OK ] Keyboard successfully initialized!\n");
+    }
 
     print("-----------------------\n\n");
     print("Doors OS Shell\n");

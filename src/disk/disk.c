@@ -1,62 +1,31 @@
 #include "disk.h"
-#include "../util.h"  // Your inb/outb/inw/outw functions
+#include "../vga.h"
 
-// Primary ATA I/O ports
-#define ATA_PRIMARY_DATA     0x1F0
-#define ATA_PRIMARY_ERROR    0x1F1
-#define ATA_PRIMARY_SECCOUNT 0x1F2
-#define ATA_PRIMARY_LBA_LOW  0x1F3
-#define ATA_PRIMARY_LBA_MID  0x1F4
-#define ATA_PRIMARY_LBA_HIGH 0x1F5
-#define ATA_PRIMARY_DRIVE    0x1F6
-#define ATA_PRIMARY_STATUS   0x1F7
-#define ATA_PRIMARY_CMD      0x1F7
+void disk_init(multiboot_module_t* module) {
+    if (!module) return;
 
-#define ATA_CMD_READ_SECTORS 0x20
+    uintptr_t start = (uintptr_t)module->mod_start;
+    uintptr_t end   = (uintptr_t)module->mod_end;
 
-static void ata_wait() {
-    // Wait until BSY=0 and DRQ=1
-    // while ((inb(ATA_PRIMARY_STATUS) & 0x88) != 0x08);
-}
-
-void disk_init(void) {
-    // For legacy PIO, no real init needed
-    // You could detect disks here by reading IDENTIFY, optional
-}
-
-void disk_read_sector(uint32_t lba, uint8_t* buffer) {
-    ata_wait();
-
-    outb(ATA_PRIMARY_SECCOUNT, 1); // read 1 sector
-    outb(ATA_PRIMARY_LBA_LOW, lba & 0xFF);
-    outb(ATA_PRIMARY_LBA_MID, (lba >> 8) & 0xFF);
-    outb(ATA_PRIMARY_LBA_HIGH, (lba >> 16) & 0xFF);
-    outb(ATA_PRIMARY_DRIVE, 0xE0 | ((lba >> 24) & 0x0F)); // master
-    outb(ATA_PRIMARY_CMD, ATA_CMD_READ_SECTORS);
-
-    ata_wait();
-
-    uint16_t* buf16 = (uint16_t*)buffer;
-    for (int i = 0; i < 256; i++) { // 256 words = 512 bytes
-        buf16[i] = inw(ATA_PRIMARY_DATA);
+    if (end <= start) {
+        print("Invalid module addresses!\n");
+        disk.data = 0;
+        disk.size = 0;
+        return;
     }
+
+    disk.data = (uint8_t*)start;
+    disk.size = (uint32_t)(end - start);
 }
 
-void disk_read_sectors(uint32_t lba, uint8_t* buffer, uint8_t count) {
-    ata_wait();
+uint8_t disk_read_byte(uint32_t offset) {
+    if (offset >= disk.size) return 0;
+    return disk.data[offset];
+}
 
-    outb(ATA_PRIMARY_SECCOUNT, count);
-    outb(ATA_PRIMARY_LBA_LOW, lba & 0xFF);
-    outb(ATA_PRIMARY_LBA_MID, (lba >> 8) & 0xFF);
-    outb(ATA_PRIMARY_LBA_HIGH, (lba >> 16) & 0xFF);
-    outb(ATA_PRIMARY_DRIVE, 0xE0 | ((lba >> 24) & 0x0F)); // master
-    outb(ATA_PRIMARY_CMD, ATA_CMD_READ_SECTORS);
-
-    for (uint8_t s = 0; s < count; s++) {
-        ata_wait();
-        uint16_t* buf16 = (uint16_t*)(buffer + s * SECTOR_SIZE);
-        for (int i = 0; i < 256; i++) {
-            buf16[i] = inw(ATA_PRIMARY_DATA);
-        }
+void disk_read_bytes(uint32_t offset, uint8_t* buffer, uint32_t length) {
+    if (offset + length > disk.size) length = disk.size - offset;
+    for (uint32_t i = 0; i < length; i++) {
+        buffer[i] = disk.data[offset + i];
     }
 }

@@ -2,7 +2,7 @@
 #ifndef FS_H
 #define FS_H
 
-#include "../../stdint.h"
+#include <stdint.h>
 
 typedef struct {
     uint8_t  jmpBoot[3];        // Jump instruction (not important)

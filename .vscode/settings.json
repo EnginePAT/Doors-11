@@ -6,6 +6,11 @@
         "multiboot.h": "c",
         "keyboard.h": "c",
         "kmalloc.h": "c",
-        "fs.h": "c"
+        "fs.h": "c",
+        "stdio.h": "c",
+        "gdt.h": "c",
+        "memory.h": "c",
+        "idt.h": "c",
+        "disk.h": "c"
     }
 }
